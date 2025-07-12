@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   isAuthenticated: false,
@@ -7,7 +7,7 @@ const initialState = {
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     // Reducer สำหรับการตั้งค่าสถานะการล็อกอิน
@@ -27,17 +27,18 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.userRole = null;
       state.isLoading = false;
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
     },
     // Reducer สำหรับตั้งค่า isLoading
     setLoading: (state, action) => {
       state.isLoading = action.payload;
-    }
+    },
   },
 });
 
 // export actions ที่สร้างโดย createSlice โดยอัตโนมัติ
-export const { setAuthStatus, loginSuccess, logout, setLoading } = authSlice.actions;
+export const { setAuthStatus, loginSuccess, logout, setLoading } =
+  authSlice.actions;
 
 // export reducer เพื่อนำไปใช้ใน store.js
 export default authSlice.reducer;
