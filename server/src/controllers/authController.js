@@ -1,12 +1,20 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-let users = [];
+let users = [
+  {
+    "id": 1,
+    "name": "Admin",
+    "email": "admin@gmail.com",
+    "password": "$2b$10$duw8gRPCSQYKNC3K.VNC1eGo62Xpk7l5uR7K6zfOpnV3sLVlh/3xO", // hashed password for "123456"
+    "role": "admin"
+  }
+];
 
 exports.registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !role) {
     return res.status(400).json({ msg: "Please enter all fields" });
   }
   if (password.length < 6) {
@@ -23,6 +31,9 @@ exports.registerUser = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    console.log(
+      'password hashed successfully:', hashedPassword
+    );
 
     const newUserId =
       (users.length > 0 ? Math.max(...users.map((u) => u.id)) : 0) + 1;
@@ -33,6 +44,7 @@ exports.registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role: role,
     };
     users.push(newUser);
     console.log(

@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Button } from "../../../components/button";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 export function Register() {
+  const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [role, setRole] = useState("");
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -16,7 +18,7 @@ export function Register() {
       alert("Passwords do not match!");
       return;
     }
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !role) {
       alert("Please fill in all fields.");
       return;
     }
@@ -25,10 +27,10 @@ export function Register() {
       return;
     }
     try {
-      fetch("http://localhost:5000/api/auth/register", {
+      fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, role }),
       })
         .then((response) => response.json())
         .then((data) => {
@@ -71,6 +73,25 @@ export function Register() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+        </div>
+        <div className="mb-4">
+          <label
+            className="block text-sm font-medium text-gray-700 mb-2"
+            htmlFor="role"
+          >
+            ตำแหน่ง
+          </label>
+          <select
+            id="role"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-500"
+            required
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="" disabled>เลือกตำแหน่ง</option>
+            <option value="admin">ผู้ดูแลระบบ</option>
+            <option value="user">ผู้ใช้งาน</option>
+          </select>
         </div>
         <div className="mb-4">
           <label
