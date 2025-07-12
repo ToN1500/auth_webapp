@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function UserData() {
+  const API_URL = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       // 1. ดึง Token จาก Local Storage
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
 
       // ตรวจสอบว่ามี Token หรือไม่
       if (!token) {
@@ -16,22 +19,30 @@ function UserData() {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/auth", {
+        const response = await fetch(`${API_URL}/api/auth`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             // 2. แนบ Token เข้าไปใน Authorization Header
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
         });
 
         if (!response.ok) {
           // ถ้า Server ตอบกลับมาว่า Token ไม่ถูกต้อง/หมดอายุ
           if (response.status === 401 || response.status === 403) {
-            setError("เซสชันหมดอายุหรือคุณไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่");
-            localStorage.removeItem('token'); // ลบ Token ที่หมดอายุทิ้ง
-            // อาจจะ navigate ไปหน้า login อีกครั้ง
-            // navigate('/login');
+            setError(
+              "เซสชันหมดอายุหรือคุณไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่"
+            );
+            localStorage.removeItem("token");
+            // แสดง Alert ก่อนจะ navigate ไปหน้า login
+            if (
+              window.confirm(
+                "เซสชันหมดอายุหรือคุณไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่"
+              )
+            ) {
+              navigate("/login");
+            }
           } else {
             setError(`เกิดข้อผิดพลาด: ${response.statusText}`);
           }

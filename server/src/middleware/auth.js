@@ -1,23 +1,31 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = function(req, res, next) {
-    // 1. ดึง Token จาก HTTP Header
-    // โดยทั่วไป Client จะส่ง JWT มาใน Header ที่ชื่อ 'x-auth-token'
-    const token = req.header('x-auth-token');
+    // 1. ดึงค่าเต็มของ Authorization Header
+    const authHeader = req.header('Authorization'); // ตอนนี้ค่าจะเป็น "Bearer eyJhbGciO..."
+    console.log('Authorization Header:', authHeader);
 
-    // 2. ตรวจสอบว่ามี Token ไหม
-    if (!token) {
-        // ถ้าไม่มี Token แปลว่าไม่ได้รับอนุญาตให้เข้าถึง
+    // 2. ตรวจสอบว่ามี Authorization Header ไหม
+    if (!authHeader) {
         return res.status(401).json({ msg: 'No token, authorization denied' });
     }
 
-    // 3. ตรวจสอบความถูกต้องของ Token
+    // 3. แยก Bearer ออกจาก Token จริงๆ
+    // ค่าใน authHeader จะเป็น "Bearer <YOUR_TOKEN>"
+    // เราต้องการแค่ <YOUR_TOKEN>
+    const token = authHeader.split(' ')[1]; // แยก string ด้วยช่องว่าง และเอาส่วนที่สอง (index 1)
+
+    // 4. ตรวจสอบว่ามี Token หลังจากแยกแล้วไหม (ป้องกันกรณี Header เป็นแค่ "Bearer" เฉยๆ)
+    if (!token) {
+        return res.status(401).json({ msg: 'No token, authorization denied' });
+    }
+
+    // 5. ตรวจสอบความถูกต้องของ Token
     try {
         // ใช้ JWT_SECRET (จาก .env) เพื่อถอดรหัส Token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // เมื่อถอดรหัสสำเร็จ ข้อมูลที่เราใส่ไว้ใน Token (payload) จะอยู่ใน decoded.user
-        // เราจะแนบข้อมูลผู้ใช้นี้ไปกับ object 'req' เพื่อให้ Route หรือ Controller ถัดไปใช้งานได้
         req.user = decoded.user;
         next(); // เรียก next() เพื่อส่ง request ไปยังฟังก์ชันถัดไปใน pipeline (เช่น Controller)
     } catch (err) {

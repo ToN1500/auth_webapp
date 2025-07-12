@@ -1,10 +1,11 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
-import { Login } from "./features/auth/components/login";
-import { Register } from "./features/auth/components/register";
 import { Layout } from "./components/Layout";
 import UserData from "./features/data/components/UserData";
+import { Register } from "./features/auth/components/Register";
+import { Login } from "./features/auth/components/Login";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -15,7 +16,14 @@ function App() {
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/userdata" element={<UserData />} />
+        <Route
+          path="/userdata"
+          element={
+            <ProtectedRoute>
+              <UserData />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   );
