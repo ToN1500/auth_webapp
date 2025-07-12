@@ -1,193 +1,193 @@
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const pool = require("../db");
 
-let users = [
-  {
-    "id": 1,
-    "name": "Admin",
-    "email": "admin@gmail.com",
-    "password": "$2b$10$duw8gRPCSQYKNC3K.VNC1eGo62Xpk7l5uR7K6zfOpnV3sLVlh/3xO", // hashed password for "123456"
-    "role": "admin"
-  }
-];
-
-exports.registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
-
-  if (!name || !email || !password || !role) {
-    return res.status(400).json({ msg: "Please enter all fields" });
-  }
-  if (password.length < 6) {
-    return res
-      .status(400)
-      .json({ msg: "Password must be at least 6 characters" });
-  }
-
-  try {
-    const existingUser = users.find((u) => u.email === email);
-    if (existingUser) {
-      return res.status(400).json({ msg: "User already exists" });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    console.log(
-      'password hashed successfully:', hashedPassword
-    );
-
-    const newUserId =
-      (users.length > 0 ? Math.max(...users.map((u) => u.id)) : 0) + 1;
-
-    // 4. สร้าง object ผู้ใช้และเก็บใน In-Memory Store
-    const newUser = {
-      id: newUserId,
-      name,
-      email,
-      password: hashedPassword,
-      role: role,
-    };
-    users.push(newUser);
-    console.log(
-      `New user registered (in-memory): ID: ${newUser.id}, Email: ${newUser.email}`
-    );
-
-    res.json({
-      success: true,
-      msg: "User registered in successfully (In-Memory)",
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
-
+if (!process.env.JWT_SECRET) {
+    console.error("Error: JWT_SECRET is not defined in environment variables.");
+    process.exit(1);
+}
+// **ข้อควรระวัง: ใน Production ควรเก็บ loginStates ใน Redis หรือ Database เช่นกัน ไม่ควรเก็บในหน่วยความจำ**
 const loginStates = new Map();
 
-exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
+exports.registerUser = async (req, res) => {
+    const { name, email, password, role } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ msg: "กรุณากรอกข้อมูลให้ครบถ้วน" });
-  }
-
-  try {
-    const user = users.find((u) => u.email === email);
-
-    if (!user) {
-      // อัปเดตสถานะการล็อกอินสำหรับอีเมลที่ไม่มีอยู่จริง
-      const currentState = loginStates.get(email) || {
-        count: 0,
-        lockUntil: null,
-        isPermanentlyLocked: false,
-      };
-      currentState.count++;
-
-      if (currentState.count >= 9) {
-        currentState.isPermanentlyLocked = true;
-        currentState.lockUntil = null;
-      } else if (currentState.count >= 3) {
-        currentState.lockUntil = new Date(Date.now() + 2 * 60 * 1000); // ล็อก 2 นาที
-      }
-      loginStates.set(email, currentState);
-
-      return res.status(400).json({ msg: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+    if (!name || !email || !password || !role) {
+        return res.status(400).json({ msg: "Please enter all fields" });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ msg: "Password must be at least 6 characters" });
+    }
+    if (!['user', 'admin'].includes(role.toLowerCase())) {
+        return res.status(400).json({ msg: "Invalid role. Role must be 'user' or 'admin'." });
     }
 
-    let userLoginState = loginStates.get(user.email);
+    try {
+        const [existingUsers] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
 
-    if (!userLoginState) {
-      userLoginState = {
-        count: 0,
-        lockUntil: null,
-        isPermanentlyLocked: false,
-      };
-      loginStates.set(user.email, userLoginState);
-    }
+        if (existingUsers.length > 0) {
+            return res.status(400).json({ msg: "User already exists with this email" });
+        }
 
-    if (userLoginState.isPermanentlyLocked) {
-      return res.status(403).json({
-        msg: "บัญชีของคุณถูกล็อกถาวรเนื่องจากพยายามเข้าสู่ระบบผิดพลาดหลายครั้ง กรุณาติดต่อผู้ดูแลระบบ",
-        typeLoacked: "permanently",
-      });
-    }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        console.log('Password hashed successfully:', hashedPassword);
 
-    if (userLoginState.lockUntil && userLoginState.lockUntil > new Date()) {
-      const minutesRemaining = Math.ceil(
-        (userLoginState.lockUntil.getTime() - new Date().getTime()) /
-          (1000 * 60)
-      );
-      return res.status(429).json({
-        msg: `พยายามเข้าสู่ระบบผิดพลาดหลายครั้ง กรุณาลองใหม่ในอีก ${minutesRemaining} นาที`,
-        typeLoacked: "temporary",
-      });
-    }
+        const [result] = await pool.query(
+            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+            [name, email, hashedPassword, role.toLowerCase()]
+        );
 
-    const isMatch = await bcrypt.compare(password, user.password);
+        console.log(`New user registered (in database): ID: ${result.insertId}, Email: ${email}`);
 
-    if (!isMatch) {
-      userLoginState.count++;
-
-      if (userLoginState.count >= 4) {
-        userLoginState.isPermanentlyLocked = true;
-        userLoginState.lockUntil = null;
-        loginStates.set(user.email, userLoginState);
-        return res.status(403).json({
-          msg: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง บัญชีของคุณถูกล็อกถาวรเนื่องจากพยายามเข้าสู่ระบบผิดพลาดหลายครั้ง",
-          typeLoacked: "permanently",
+        res.status(201).json({
+            success: true,
+            msg: "User registered successfully",
+            userId: result.insertId,
+            email: email,
+            role: role.toLowerCase()
         });
-      } else if (userLoginState.count >= 3) {
-        userLoginState.lockUntil = new Date(Date.now() + 2 * 60 * 1000);
-        loginStates.set(user.email, userLoginState);
-        return res.status(429).json({
-          msg: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง พยายามเข้าสู่ระบบผิดพลาดหลายครั้ง บัญชีของคุณถูกล็อกชั่วคราว 2 นาที",
-          typeLoacked: "temporary",
-        });
-      }
-
-      loginStates.set(user.email, userLoginState);
-      return res.status(400).json({ msg: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+    } catch (err) {
+        console.error('Error during user registration:', err.message);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ msg: "Email already exists." });
+        }
+        res.status(500).send("Server error during registration");
     }
-
-    userLoginState.count = 0;
-    userLoginState.lockUntil = null;
-    userLoginState.isPermanentlyLocked = false;
-    loginStates.set(user.email, userLoginState);
-
-    const payload = {
-      user: {
-        id: user.id,
-        email: user.email,
-      },
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token, msg: "เข้าสู่ระบบสำเร็จ (ในหน่วยความจำ)" });
-      }
-    );
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("เกิดข้อผิดพลาดที่เซิร์ฟเวอร์");
-  }
 };
 
-exports.getAuthUser = (req, res) => {
-  try {
-    // ข้อมูลผู้ใช้ (req.user) มาจาก authMiddleware ที่ถอดรหัส JWT ให้เรา
-    // req.user จะมี id และ email ของผู้ใช้ที่ Login เข้ามา
-    const currentUser = users.find((u) => u.id === req.user.id);
-    if (!currentUser) {
-      return res.status(404).json({ msg: "User not found" });
+exports.loginUser = async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ msg: "กรุณากรอกข้อมูลให้ครบถ้วน" });
     }
 
-    const { password, ...userWithoutPassword } = currentUser;
-    res.json(userWithoutPassword); // ส่งข้อมูลผู้ใช้ (ยกเว้นรหัสผ่าน) กลับไป
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
-  }
+    try {
+        const [users] = await pool.query('SELECT id, name, email, password, role FROM users WHERE email = ?', [email]);
+        const user = users[0];
+
+        if (!user) {
+            const currentState = loginStates.get(email) || {
+                count: 0,
+                lockUntil: null,
+                isPermanentlyLocked: false,
+            };
+            currentState.count++;
+
+            // ตรรกะการล็อกที่ไม่พบผู้ใช้
+            if (currentState.count >= 9) {
+                currentState.isPermanentlyLocked = true;
+                currentState.lockUntil = null;
+                console.warn(`Non-existent email '${email}' permanently locked.`);
+            } else if (currentState.count >= 3) {
+                currentState.lockUntil = new Date(Date.now() + 2 * 60 * 1000); // ล็อก 2 นาที
+                console.warn(`Non-existent email '${email}' temporarily locked for 2 minutes.`);
+            }
+            loginStates.set(email, currentState);
+
+            return res.status(400).json({ msg: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+        }
+
+        let userLoginState = loginStates.get(user.email);
+
+        if (!userLoginState) {
+            userLoginState = {
+                count: 0,
+                lockUntil: null,
+                isPermanentlyLocked: false,
+            };
+            loginStates.set(user.email, userLoginState);
+        }
+
+        if (userLoginState.isPermanentlyLocked) {
+            return res.status(403).json({
+                msg: "บัญชีของคุณถูกล็อกถาวรเนื่องจากพยายามเข้าสู่ระบบผิดพลาดหลายครั้ง กรุณาติดต่อผู้ดูแลระบบ",
+                typeLoacked: "permanently",
+            });
+        }
+
+        if (userLoginState.lockUntil && userLoginState.lockUntil > new Date()) {
+            const minutesRemaining = Math.ceil(
+                (userLoginState.lockUntil.getTime() - new Date().getTime()) / (1000 * 60)
+            );
+            return res.status(429).json({
+                msg: `พยายามเข้าสู่ระบบผิดพลาดหลายครั้ง กรุณาลองใหม่ในอีก ${minutesRemaining} นาที`,
+                typeLoacked: "temporary",
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            userLoginState.count++;
+
+            // ตรรกะการล็อกสำหรับรหัสผ่านผิด
+            if (userLoginState.count >= 4) {
+                userLoginState.isPermanentlyLocked = true;
+                userLoginState.lockUntil = null;
+                loginStates.set(user.email, userLoginState);
+                console.warn(`User '${user.email}' permanently locked due to incorrect password attempts.`);
+                return res.status(403).json({
+                    msg: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง บัญชีของคุณถูกล็อกถาวรเนื่องจากพยายามเข้าสู่ระบบผิดพลาดหลายครั้ง",
+                    typeLoacked: "permanently",
+                });
+            } else if (userLoginState.count >= 3) {
+                userLoginState.lockUntil = new Date(Date.now() + 2 * 60 * 1000);
+                loginStates.set(user.email, userLoginState);
+                console.warn(`User '${user.email}' temporarily locked for 2 minutes.`);
+                return res.status(429).json({
+                    msg: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง พยายามเข้าสู่ระบบผิดพลาดหลายครั้ง บัญชีของคุณถูกล็อกชั่วคราว 2 นาที",
+                    typeLoacked: "temporary",
+                });
+            }
+
+            loginStates.set(user.email, userLoginState);
+            return res.status(400).json({ msg: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+        }
+
+        userLoginState.count = 0;
+        userLoginState.lockUntil = null;
+        userLoginState.isPermanentlyLocked = false;
+        loginStates.set(user.email, userLoginState);
+
+        const payload = {
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role
+            },
+        };
+
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: "3m" },
+            (err, token) => {
+                if (err) throw err;
+                res.json({ token, msg: "เข้าสู่ระบบสำเร็จ" });
+            }
+        );
+    } catch (err) {
+        console.error('Error during user login:', err.message);
+        res.status(500).send("เกิดข้อผิดพลาดที่เซิร์ฟเวอร์");
+    }
+};
+
+exports.getAuthUser = async (req, res) => {
+    try {
+        const [users] = await pool.query('SELECT id, name, email, role FROM users WHERE id = ?', [req.user.id]);
+        const currentUser = users[0];
+        console.log('Authenticated user:', currentUser);
+
+        if (!currentUser) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        res.json(currentUser);
+    } catch (err) {
+        console.error('Error getting authenticated user:', err.message);
+        res.status(500).send("Server Error");
+    }
 };

@@ -73,6 +73,7 @@ function UserData() {
       <h2 className="text-xl font-bold mb-2">ข้อมูลโปรไฟล์</h2>
       <p>ชื่อ: {profile.name}</p>
       <p>อีเมล: {profile.email}</p>
+      <p>ตำแหน่ง: {profile.role}</p>
       {/* แสดงข้อมูลโปรไฟล์อื่นๆ */}
     </div>
   );

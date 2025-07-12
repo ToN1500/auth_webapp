@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 module.exports = function(req, res, next) {
     // 1. ดึงค่าเต็มของ Authorization Header
     const authHeader = req.header('Authorization'); // ตอนนี้ค่าจะเป็น "Bearer eyJhbGciO..."
-    console.log('Authorization Header:', authHeader);
 
     // 2. ตรวจสอบว่ามี Authorization Header ไหม
     if (!authHeader) {
