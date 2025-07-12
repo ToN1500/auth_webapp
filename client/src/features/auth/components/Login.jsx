@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Button } from "../../../components/button";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux"; // <--- นำเข้า useDispatch
+import { loginSuccess, setLoading } from "./authSlice";
 
 export function Login() {
   const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -12,6 +15,7 @@ export function Login() {
 
   const handleLogin = (e) => {
     e.preventDefault();
+    dispatch(setLoading(true));
     try {
       fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -22,11 +26,12 @@ export function Login() {
         .then((data) => {
           if (data.token) {
             alert(data.msg || "Login successful!");
+            dispatch(loginSuccess({ role: data.role }));
             localStorage.setItem("token", data.token);
             navigate("/");
-            console.log("Token received:", data.token);
           } else {
             alert("Login failed: " + data.msg);
+            dispatch(setLoading(false));
           }
         })
         .catch((error) => {
