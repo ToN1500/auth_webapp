@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 export function ProtectedRoute({ children, allowedRoles }) {
   const navigate = useNavigate();
@@ -8,17 +9,24 @@ export function ProtectedRoute({ children, allowedRoles }) {
     (state) => state.auth
   ); // <--- ดึง state จาก auth slice
 
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        navigate("/login");
+      } else if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
+        navigate("/");
+      }
+    }
+  }, [isAuthenticated, userRole, isLoading, allowedRoles, navigate]);
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!isAuthenticated) {
-    navigate("/login");
-    return null;
-  }
-
-  if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
-    navigate("/");
+  if (
+    !isAuthenticated ||
+    (allowedRoles && userRole && !allowedRoles.includes(userRole))
+  ) {
     return null;
   }
 

@@ -35,14 +35,8 @@ function UserData() {
               "เซสชันหมดอายุหรือคุณไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่"
             );
             localStorage.removeItem("token");
-            // แสดง Alert ก่อนจะ navigate ไปหน้า login
-            if (
-              window.confirm(
-                "เซสชันหมดอายุหรือคุณไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่"
-              )
-            ) {
-              navigate("/login");
-            }
+            // ไม่ต้อง redirect อัตโนมัติ ให้ผู้ใช้กดปุ่มเอง
+            return;
           } else {
             setError(`เกิดข้อผิดพลาด: ${response.statusText}`);
           }
@@ -58,10 +52,20 @@ function UserData() {
     };
 
     fetchProfile();
-  }, []); // [] หมายถึงเรียกใช้ครั้งเดียวเมื่อ component ถูก mount
+  }, [API_URL]); // [] หมายถึงเรียกใช้ครั้งเดียวเมื่อ component ถูก mount
 
   if (error) {
-    return <div className="text-red-500 p-4">{error}</div>;
+    return (
+      <div className="text-red-500 p-4">
+        {error}
+        <button
+          className="ml-2 underline text-blue-600"
+          onClick={() => navigate("/login")}
+        >
+          ไปหน้าเข้าสู่ระบบ
+        </button>
+      </div>
+    );
   }
 
   if (!profile) {
