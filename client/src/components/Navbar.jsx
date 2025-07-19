@@ -55,7 +55,11 @@ export function Navbar() {
 
   const handleLogout = () => {
     dispatch(logout());
+<<<<<<< HEAD
     navigate("/login");
+=======
+    navigate("/");
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
   };
 
   if (isLoading) {
@@ -63,19 +67,51 @@ export function Navbar() {
   }
 
   return (
+<<<<<<< HEAD
     <nav className="bg-gray-800 p-4 text-white shadow-lg">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-xl font-bold">
           Web
+=======
+    <nav className="bg-white border-b border-gray-200 p-4 shadow-sm sticky top-0 z-30">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link
+          to="/"
+          className="text-2xl font-extrabold tracking-tight text-blue-700 flex items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-8 h-8 text-blue-600"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          Auth WebApp
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
         </Link>
         {/* Hamburger menu icon สำหรับหน้าจอมือถือ */}
         <div className="md:hidden">
           <button
             onClick={() => setIsOpen(!isOpen)}
+<<<<<<< HEAD
             className="text-white focus:outline-none"
           >
             <svg
               className="w-6 h-6"
+=======
+            className="text-blue-700 focus:outline-none"
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="w-7 h-7"
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -100,27 +136,43 @@ export function Navbar() {
           </button>
         </div>
         {/* เมนูสำหรับหน้าจอ Desktop (ซ่อนบนมือถือ)  */}
+<<<<<<< HEAD
         <div className="hidden md:flex space-x-6">
           <Link
             to="#"
             className="hover:text-gray-300 transition-colors duration-200"
+=======
+        <div className="hidden md:flex items-center space-x-6">
+          <Link
+            to="/"
+            className="hover:text-blue-600 transition-colors font-medium"
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
           >
             หน้าแรก
           </Link>
           <Link
             to="/userdata"
+<<<<<<< HEAD
             className="hover:text-gray-300 transition-colors duration-200"
+=======
+            className="hover:text-blue-600 transition-colors font-medium"
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
           >
             ข้อมูลผู้ใช้
           </Link>
           <Link
             to="#"
+<<<<<<< HEAD
             className="hover:text-gray-300 transition-colors duration-200"
+=======
+            className="hover:text-blue-600 transition-colors font-medium"
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
           >
             สินค้า
           </Link>
           <Link
             to="#"
+<<<<<<< HEAD
             className="hover:text-gray-300 transition-colors duration-200"
           >
             บล็อก
@@ -155,10 +207,51 @@ export function Navbar() {
           <Link
             to="#"
             className="block hover:bg-gray-700 p-2 rounded transition-colors duration-200"
+=======
+            className="hover:text-blue-600 transition-colors font-medium"
+          >
+            บล็อก
+          </Link>
+          <Link
+            to="#"
+            className="hover:text-blue-600 transition-colors font-medium"
+          >
+            ติดต่อ
+          </Link>
+          {isAuthenticated ? (
+            <>
+              <button
+                onClick={handleLogout}
+                className="ml-2 px-4 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition font-semibold"
+              >
+                Logout
+              </button>
+              <span className="ml-2 px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold uppercase">
+                {userRole === "admin" ? "Admin" : "User"}
+              </span>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="ml-2 px-4 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition font-semibold"
+            >
+              Login
+            </Link>
+          )}
+        </div>
+      </div>
+      {/* เมนูสำหรับหน้าจอมือถือ (แสดงเมื่อ isOpen เป็น true) */}
+      {isOpen && (
+        <div className="md:hidden mt-4 space-y-2 px-4 pb-2 bg-white border rounded shadow">
+          <Link
+            to="/"
+            className="block hover:bg-blue-50 p-2 rounded transition-colors"
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
           >
             หน้าแรก
           </Link>
           <Link
+<<<<<<< HEAD
             to="#"
             className="block hover:bg-gray-700 p-2 rounded transition-colors duration-200"
           >
@@ -167,21 +260,62 @@ export function Navbar() {
           <Link
             to="#"
             className="block hover:bg-gray-700 p-2 rounded transition-colors duration-200"
+=======
+            to="/userdata"
+            className="block hover:bg-blue-50 p-2 rounded transition-colors"
+          >
+            ข้อมูลผู้ใช้
+          </Link>
+          <Link
+            to="#"
+            className="block hover:bg-blue-50 p-2 rounded transition-colors"
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
           >
             สินค้า
           </Link>
           <Link
             to="#"
+<<<<<<< HEAD
             className="block hover:bg-gray-700 p-2 rounded transition-colors duration-200"
+=======
+            className="block hover:bg-blue-50 p-2 rounded transition-colors"
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
           >
             บล็อก
           </Link>
           <Link
             to="#"
+<<<<<<< HEAD
             className="block hover:bg-gray-700 p-2 rounded transition-colors duration-200"
           >
             ติดต่อ
           </Link>
+=======
+            className="block hover:bg-blue-50 p-2 rounded transition-colors"
+          >
+            ติดต่อ
+          </Link>
+          {isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="w-full mt-2 px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition font-semibold"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="block mt-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition font-semibold text-center"
+            >
+              Login
+            </Link>
+          )}
+          {isAuthenticated && (
+            <span className="block mt-2 px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold uppercase text-center">
+              {userRole === "admin" ? "Admin" : "User"}
+            </span>
+          )}
+>>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
         </div>
       )}
     </nav>
