@@ -1,12 +1,25 @@
-# React + Vite
+# Frontend - React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+โฟลเดอร์นี้เป็นส่วนของ Frontend พัฒนาโดยใช้ React (Vite)
 
-Currently, two official plugins are available:
+## โครงสร้างหลัก
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- `src/` — โค้ดหลักของแอป
+  - `components/` — ส่วนประกอบ UI ทั่วไป (Navbar, Footer, Button, ProtectedRoute)
+  - `features/auth/` — ฟีเจอร์เกี่ยวกับ authentication (Login, Register, authSlice)
+  - `features/data/` — ฟีเจอร์เกี่ยวกับข้อมูลผู้ใช้
+  - `pages/` — หน้าเพจหลัก (HomePage)
+  - `app/store.js` — Redux store
+- `public/` — ไฟล์ static
 
-## Expanding the ESLint configuration
+## คำสั่งที่ใช้บ่อย
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- ติดตั้ง dependencies: `npm install`
+- รัน dev server: `npm run dev`
+- Build production: `npm run build`
+- ตรวจสอบ lint: `npm run lint`
+
+## การตั้งค่าเพิ่มเติม
+
+- สามารถปรับแต่ง ESLint ได้ที่ `eslint.config.js`
+- ตั้งค่า Vite ได้ที่ `vite.config.js`
