@@ -35,19 +35,8 @@ function UserData() {
               "เซสชันหมดอายุหรือคุณไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่"
             );
             localStorage.removeItem("token");
-<<<<<<< HEAD
-            // แสดง Alert ก่อนจะ navigate ไปหน้า login
-            if (
-              window.confirm(
-                "เซสชันหมดอายุหรือคุณไม่ได้รับอนุญาต กรุณาเข้าสู่ระบบใหม่"
-              )
-            ) {
-              navigate("/login");
-            }
-=======
             // ไม่ต้อง redirect อัตโนมัติ ให้ผู้ใช้กดปุ่มเอง
             return;
->>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
           } else {
             setError(`เกิดข้อผิดพลาด: ${response.statusText}`);
           }

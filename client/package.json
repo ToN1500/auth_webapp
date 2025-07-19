@@ -11,10 +11,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
-<<<<<<< HEAD
     "@tailwindcss/vite": "^4.1.11",
-=======
->>>>>>> fef61a3b8483f3d98a055b51df2314d4321f50d3
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
