@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "../../../components/button";
+import { Button } from "../../../components/Button";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux"; // <--- นำเข้า useDispatch
 import { loginSuccess, setLoading } from "./authSlice";
